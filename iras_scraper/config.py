@@ -47,6 +47,10 @@ class Config:
     RANDOM_DELAY_RANGE = (0.2, 0.8)  # Much faster delays
     NAVIGATION_DELAY = float(os.getenv("NAVIGATION_DELAY", "1.0"))  # Page navigation delays
     
+    # WebDriver Settings
+    CHROMEDRIVER_PATH = os.getenv("CHROMEDRIVER_PATH", None)  # Manual ChromeDriver path for network-restricted environments
+    WDM_LOCAL = os.getenv("WDM_LOCAL", "false").lower() == "true"  # Use only local drivers
+    
     # File Paths
     INPUT_EXCEL_PATH = os.getenv("INPUT_EXCEL_PATH", "data/input_uens.xlsx")
     OUTPUT_EXCEL_PATH = os.getenv("OUTPUT_EXCEL_PATH", "data/output_results.xlsx")

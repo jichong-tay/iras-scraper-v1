@@ -1,0 +1,18 @@
+[tool.uv]
+# Network-restricted environment configuration
+python-downloads = "never"
+python-preference = "only-system" 
+offline = true
+allow-insecure-host = [
+    # Add your internal hosts here if needed
+    # "internal-pypi.company.com",
+    # "mirror.local"
+]
+
+# Optional: Configure cache directory for local packages
+# cache-dir = "./uv-cache"
+
+# Optional: Use local package index
+# [[tool.uv.index]]
+# name = "local"
+# url = "file:///path/to/local/packages"

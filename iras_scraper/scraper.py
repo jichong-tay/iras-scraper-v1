@@ -118,9 +118,22 @@ class IRASScraper:
             }
             chrome_options.add_experimental_option("prefs", prefs)
             
-            # Initialize driver
+            # Initialize driver with manual or automatic ChromeDriver
+            if self.config.CHROMEDRIVER_PATH:
+                # Use manually specified ChromeDriver path
+                self.logger.info(f"Using manual ChromeDriver: {self.config.CHROMEDRIVER_PATH}")
+                service = webdriver.chrome.service.Service(self.config.CHROMEDRIVER_PATH)
+            elif self.config.WDM_LOCAL:
+                # Use system-installed ChromeDriver (no automatic download)
+                self.logger.info("Using system-installed ChromeDriver (WDM_LOCAL=true)")
+                service = webdriver.chrome.service.Service()
+            else:
+                # Automatic ChromeDriver download (default behavior)
+                self.logger.info("Automatically downloading ChromeDriver")
+                service = webdriver.chrome.service.Service(ChromeDriverManager().install())
+            
             driver = webdriver.Chrome(
-                service=webdriver.chrome.service.Service(ChromeDriverManager().install()),
+                service=service,
                 options=chrome_options
             )
             

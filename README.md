@@ -63,6 +63,183 @@ This project is now **fully organized** with dedicated folders:
 uv install
 ```
 
+### Manual WebDriver Setup (Network-Restricted Environments)
+
+If your network blocks automatic WebDriver downloads, you'll need to manually download and configure ChromeDriver:
+
+#### Step 1: Download ChromeDriver
+
+1. **Check your Chrome browser version**:
+   - Open Chrome → Help → About Google Chrome
+   - Note the version number (e.g., `120.0.6099.109`)
+
+2. **Download matching ChromeDriver**:
+   - Visit: https://chromedriver.chromium.org/downloads
+   - Or direct link: https://googlechromelabs.github.io/chrome-for-testing/
+   - Download the ChromeDriver version that matches your Chrome browser
+   - Choose the correct platform:
+     - **Windows**: `chromedriver-win64.zip` or `chromedriver-win32.zip`
+     - **Linux**: `chromedriver-linux64.zip`  
+     - **macOS**: `chromedriver-mac-x64.zip` or `chromedriver-mac-arm64.zip`
+
+#### Step 2: Install ChromeDriver
+
+**Option A: System PATH Installation (Recommended)**
+
+1. **Extract the ChromeDriver executable**
+2. **Place it in your system PATH**:
+
+   **Windows**:
+   ```bash
+   # Copy chromedriver.exe to C:\Windows\System32\
+   # Or add the chromedriver folder to your PATH environment variable
+   ```
+
+   **Linux/macOS**:
+   ```bash
+   # Make executable and move to /usr/local/bin
+   chmod +x chromedriver
+   sudo mv chromedriver /usr/local/bin/
+   ```
+
+3. **Verify installation**:
+   ```bash
+   chromedriver --version
+   ```
+
+**Option B: Project-Specific Installation**
+
+1. **Create drivers directory in your project**:
+   ```bash
+   mkdir -p drivers
+   ```
+
+2. **Place ChromeDriver in the drivers folder**:
+   ```bash
+   # Extract and copy chromedriver to:
+   # iras-scraper-v1/drivers/chromedriver (Linux/macOS)
+   # iras-scraper-v1/drivers/chromedriver.exe (Windows)
+   ```
+
+3. **Update configuration** (create `.env` from `.env.example`):
+   ```env
+   # Add this line to specify custom ChromeDriver path
+   CHROMEDRIVER_PATH=./drivers/chromedriver
+   ```
+
+#### Step 3: Update Scraper Configuration
+
+If using Option B (project-specific installation), update the config:
+
+1. **Edit `iras_scraper/config.py`** and add:
+   ```python
+   import os
+   
+   # Add this to the Config class
+   CHROMEDRIVER_PATH = os.getenv('CHROMEDRIVER_PATH', None)
+   ```
+
+2. **Update WebDriver initialization in `scraper.py`**:
+   ```python
+   # In _setup_driver method, replace:
+   service=webdriver.chrome.service.Service(ChromeDriverManager().install())
+   
+   # With:
+   if self.config.CHROMEDRIVER_PATH:
+       service = webdriver.chrome.service.Service(self.config.CHROMEDRIVER_PATH)
+   else:
+       service = webdriver.chrome.service.Service(ChromeDriverManager().install())
+   ```
+
+#### Step 4: Test Installation
+
+```bash
+# Test the scraper with manual ChromeDriver
+uv run python -m iras_scraper.main --create-sample
+uv run python -m iras_scraper.main --debug-single-uen "200012345A"
+```
+
+#### Alternative: Disable Automatic Downloads
+
+If you want to completely disable automatic ChromeDriver downloads:
+
+1. **Set environment variable**:
+   ```bash
+   export WDM_LOCAL=1  # Linux/macOS
+   set WDM_LOCAL=1     # Windows
+   ```
+
+2. **Or add to your `.env` file**:
+   ```env
+   WDM_LOCAL=1
+   ```
+
+This forces the WebDriver manager to use only locally installed drivers.
+
+📖 **Detailed Guide**: See [`docs/MANUAL_WEBDRIVER_SETUP.md`](docs/MANUAL_WEBDRIVER_SETUP.md) for comprehensive manual setup instructions.
+
+### UV Package Manager Configuration (Network-Restricted Environments)
+
+If your network blocks UV's automatic Python downloads or package installations:
+
+#### Quick UV Setup for Offline Use
+
+1. **Create UV Configuration**:
+   ```bash
+   # Copy the example UV configuration
+   cp uv.toml.example uv.toml
+   ```
+
+2. **Find System Python**:
+   ```bash
+   # Find available system Python installations
+   uv python find --system
+   ```
+
+3. **Sync with System Python**:
+   ```bash
+   # Use specific Python path (replace with your system Python path)
+   uv sync --python /usr/bin/python3.8
+   
+   # Or use Python version if UV can find it
+   uv sync --python 3.8
+   ```
+
+4. **Test Configuration**:
+   ```bash
+   # Verify UV is using system Python
+   uv run python --version
+   ```
+
+#### UV Configuration Options (`uv.toml`)
+
+```toml
+[tool.uv]
+python-downloads = "never"        # Disable automatic Python downloads
+python-preference = "only-system" # Use only system-installed Python
+offline = true                    # Enable offline mode
+allow-insecure-host = []         # Allow internal/insecure hosts if needed
+```
+
+📖 **Complete UV Guide**: See [`docs/UV_OFFLINE_SETUP.md`](docs/UV_OFFLINE_SETUP.md) for detailed offline setup instructions.
+
+#### 🚀 **One-Click Network-Restricted Setup**
+
+For complete offline environment setup (UV + ChromeDriver):
+
+```bash
+# Run the automated setup script
+./setup_offline_environment.sh
+```
+
+This script automatically:
+- ✅ Creates `uv.toml` with offline configuration
+- ✅ Finds and configures system Python
+- ✅ Syncs dependencies with offline settings
+- ✅ Checks ChromeDriver setup
+- ✅ Tests the complete configuration
+- ✅ Creates sample input files
+
 ## Speed Configuration
 
 For maximum speed, copy the speed profile:
@@ -248,7 +425,10 @@ This application uses `selenium-recaptcha-solver` with audio solving method:
 
 4. **Chrome Driver Issues**:
    - The scraper automatically downloads the correct ChromeDriver
+   - **Network Restrictions**: If automatic downloads are blocked, see manual setup below
+   - **Manual Setup**: Follow [`docs/MANUAL_WEBDRIVER_SETUP.md`](docs/MANUAL_WEBDRIVER_SETUP.md) for network-restricted environments
    - Ensure Chrome browser is installed and up to date
+   - For manual installation: Set `CHROMEDRIVER_PATH` in `.env` or use `WDM_LOCAL=true`
 
 5. **Import Errors**:
    - Run `uv sync` to install all dependencies
@@ -258,6 +438,13 @@ This application uses `selenium-recaptcha-solver` with audio solving method:
 6. **Excel File Errors**:
    - Verify the input file exists and has the correct column name
    - Use `--validate-input` to check file format
+
+7. **UV Network/Download Issues**:
+   - **Python Download Blocked**: Create `uv.toml` with `python-downloads = "never"`
+   - **Package Download Blocked**: Set `offline = true` in `uv.toml`
+   - **System Python Not Found**: Run `uv python find --system` to see available options
+   - **Sync Failures**: Use `uv sync --python /path/to/system/python`
+   - **Complete Guide**: See [`docs/UV_OFFLINE_SETUP.md`](docs/UV_OFFLINE_SETUP.md)
 
 ### Logging
 

@@ -30,6 +30,20 @@ This directory contains all documentation and guides for the IRAS Scraper projec
 - **Content**: Test suite overview, running tests, test coverage, validation procedures
 - **Use Case**: Ensuring code quality and functionality verification
 
+### 🌐 **Network-Restricted Environment Guides**
+
+#### **MANUAL_WEBDRIVER_SETUP.md**
+- **Purpose**: Manual ChromeDriver configuration for restricted networks
+- **Audience**: System administrators, users in corporate/restricted environments
+- **Content**: ChromeDriver download, installation, configuration steps
+- **Use Case**: Environments where automatic WebDriver downloads are blocked
+
+#### **UV_OFFLINE_SETUP.md**
+- **Purpose**: UV package manager offline configuration
+- **Audience**: DevOps, system administrators, offline environments
+- **Content**: UV configuration, system Python setup, offline package management
+- **Use Case**: Network-restricted environments requiring offline package management
+
 ---
 
 ## 🎯 **Quick Navigation**
@@ -46,6 +60,11 @@ This directory contains all documentation and guides for the IRAS Scraper projec
 ### **For Performance Optimization:**
 1. Optimization guide → [`SPEED_OPTIMIZATION_SUMMARY.md`](SPEED_OPTIMIZATION_SUMMARY.md)
 2. Configuration reference → [`PACKAGE_USAGE_GUIDE.md#environment-based-configuration`](PACKAGE_USAGE_GUIDE.md#environment-based-configuration)
+
+### **For Network-Restricted Environments:**
+1. ChromeDriver setup → [`MANUAL_WEBDRIVER_SETUP.md`](MANUAL_WEBDRIVER_SETUP.md)
+2. UV offline configuration → [`UV_OFFLINE_SETUP.md`](UV_OFFLINE_SETUP.md)
+3. Automated setup → Run `../setup_offline_environment.sh`
 
 ---
 
