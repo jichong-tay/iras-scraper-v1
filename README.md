@@ -61,6 +61,8 @@ This project is now **fully organized** with dedicated folders:
 
 ```bash
 uv install
+uv python find --system
+uv sync
 ```
 
 ### Manual WebDriver Setup (Network-Restricted Environments)

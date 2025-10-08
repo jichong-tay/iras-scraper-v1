@@ -852,7 +852,8 @@ class IRASScraper:
         try:
             self.logger.info(f"Searching for UEN: {uen}")
             
-            # Navigate to IRAS if not already there
+            # Step 1: Navigate to IRAS (CAPTCHA becomes visible)
+            self.logger.info("Step 1: Navigating to IRAS website (CAPTCHA will be visible)")
             if not self.navigate_to_iras():
                 result["error"] = "Failed to navigate to IRAS website"
                 return result
@@ -861,7 +862,7 @@ class IRASScraper:
             debug_info = self._debug_page_elements()
             self.logger.info(f"Page debug info: {debug_info}")
             
-            # Find and fill UEN input field first
+            # Find UEN input field first
             uen_input = None
             possible_selectors = [
                 (By.ID, "txtKeyword"),  # Primary IRAS selector
@@ -883,10 +884,18 @@ class IRASScraper:
                 result["error"] = "Could not find UEN input field on the page"
                 return result
             
+            # Step 2: Enter UEN
+            self.logger.info(f"Entering UEN: {uen}")
             uen_input.clear()
             uen_input.send_keys(uen)
             
-            # Find search button
+            # Step 3: Solve ReCAPTCHA (after UEN is entered, before clicking search)
+            self.logger.info("Solving ReCAPTCHA after entering UEN...")
+            if not self.solve_recaptcha():
+                result["error"] = "Failed to solve ReCAPTCHA"
+                return result
+            
+            # Find search button (after CAPTCHA is solved)
             search_button = None
             search_selectors = [
                 (By.ID, "btnSearch"),  # Primary IRAS selector
@@ -905,27 +914,9 @@ class IRASScraper:
             if not search_button:
                 result["error"] = "Could not find search button on the page"
                 return result
-            
-            # Solve ReCAPTCHA if present before clicking search
-            if not self.solve_recaptcha():
-                result["error"] = "Failed to solve ReCAPTCHA"
-                return result
 
-            # Re-find search button after ReCAPTCHA solving (it might have become stale)
-            search_button = None
-            for selector_type, selector_value in search_selectors:
-                try:
-                    search_button = self.driver.find_element(selector_type, selector_value)
-                    self.logger.info(f"Re-found search button after ReCAPTCHA using: {selector_type}={selector_value}")
-                    break
-                except:
-                    continue
-            
-            if not search_button:
-                result["error"] = "Could not re-find search button after ReCAPTCHA solving"
-                return result
-
-            # Click search button (JavaScript click bypasses overlays)
+            # Step 4: Click search button (JavaScript click bypasses overlays)
+            self.logger.info("Step 4: Clicking search button to submit query...")
             try:
                 self.driver.execute_script("arguments[0].click();", search_button)
                 self.logger.info("Successfully clicked search button")
@@ -1112,10 +1103,7 @@ class IRASScraper:
                 self.logger.error("Failed to navigate to IRAS website")
                 return results
             
-            # Solve ReCAPTCHA once at the beginning
-            recaptcha_solved = self.solve_recaptcha()
-            if not recaptcha_solved:
-                self.logger.warning("ReCAPTCHA not solved - may need manual intervention")
+            # CAPTCHA will be solved per-UEN as needed (not upfront)
             
             for i, uen in enumerate(uens, 1):
                 self.logger.info(f"Processing UEN {i}/{len(uens)}: {uen}")
@@ -1128,10 +1116,6 @@ class IRASScraper:
                     self.logger.info(f"✓ UEN {uen} processed successfully")
                 else:
                     self.logger.warning(f"✗ UEN {uen} failed: {result['error']}")
-                    
-                    # If we get ReCAPTCHA errors, try to solve again
-                    if "recaptcha" in result.get("error", "").lower():
-                        recaptcha_solved = self.solve_recaptcha()
                 
                 # Minimal delay between UENs for speed
                 if i < len(uens):  # Don't delay after the last UEN

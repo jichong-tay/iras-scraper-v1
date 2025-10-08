@@ -41,14 +41,14 @@ chromedriver --version
 #### Option B: Project Directory
 ```bash
 # Create drivers folder
-mkdir -p drivers
+mkdir drivers
 
 # Copy ChromeDriver to project
 # Linux/macOS: cp chromedriver ./drivers/
 # Windows: copy chromedriver.exe ./drivers/
 
 # Update .env file
-echo "CHROMEDRIVER_PATH=./drivers/chromedriver" >> .env
+echo CHROMEDRIVER_PATH=./drivers/chromedriver >> .env
 ```
 
 ### 4. Configuration
